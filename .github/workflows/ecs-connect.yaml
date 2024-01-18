@@ -10,7 +10,7 @@ jobs:
       contents: read
       packages: write
     env:
-        STACK_NAME: ecs-service-connect
+      STACK_NAME: ecs-service-connect
 
     steps:
       - name: Checkout code
@@ -37,11 +37,14 @@ jobs:
           set -e
           if aws cloudformation describe-stacks --stack-name ${STACK_NAME} 2>/dev/null; then
             echo "Stack already exists. Updating instead of creating..."
-            aws cloudformation update-stack \
+            if aws cloudformation update-stack \
               --stack-name ${STACK_NAME} \
               --template-body file://ecs-service-connect.yaml \
-              --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
+              --capabilities CAPABILITY_NAMED_IAM 2>&1 | grep -q "No updates are to be performed"; then
+              echo "No updates are needed. Continuing workflow..."
+            else
+              aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
+            fi
           else
             echo "Creating new CloudFormation stack..."
             aws cloudformation create-stack \
