@@ -11,6 +11,9 @@ jobs:
       packages: write
     env:
       STACK_NAME: ecs-service-connect
+      ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+      ECR_REPOSITORY: yelb-app-image
+      IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Checkout code
@@ -31,7 +34,10 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+            echo "AWS_REGION: ${{ secrets.AWS_REGION }}"
+            echo "ECR_REGISTRY: $ECR_REGISTRY"
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
+        
 
       - name: Build, tag, and push yelb-appserver image
         id: build-appserver-image
@@ -97,7 +103,7 @@ jobs:
           LOAD_BALANCER_URL=$(jq -r '.[] | select(.OutputKey=="LoadBalancerUrl") | .OutputValue' stack-outputs.json)
           echo "Load Balancer URL: $LOAD_BALANCER_URL"
 
-      - name: Delete CloudFormation stack
-        run: |
-          aws cloudformation delete-stack --stack-name ${STACK_NAME}
-          aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
+      #- name: Delete CloudFormation stack
+        #run: |
+          #aws cloudformation delete-stack --stack-name ${STACK_NAME}
+          #aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
