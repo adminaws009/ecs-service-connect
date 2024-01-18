@@ -21,9 +21,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Set up Docker
-        uses: docker/setup-action@v2
-
       - name: Set up jq
         run: |
           sudo apt-get update
