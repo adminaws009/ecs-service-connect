@@ -37,10 +37,11 @@ jobs:
       - name: Deploy CloudFormation stack
         run: |
             aws cloudformation create-stack \
-              --stack-name ${env.STACK_NAME} \
+              --stack-name $STACK_NAME \
               --template-body file://ecs-service-connect.yaml \
               --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-create-complete --stack-name ${env.STACK_NAME}
+            aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+        
         
   
       - name: Get CloudFormation stack outputs
