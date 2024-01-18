@@ -1,4 +1,3 @@
----
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   AWS CloudFormation for deploying a sample application in ECS Fargate and enabling service to service communication using ECS Service connect.
@@ -8,7 +7,7 @@ Parameters:
     Description: The naming prefix for all resources.
     Default: app
   VPCIPv4CidrBlock:
-    Description: VPC CIDR block for IPv4. 
+    Description: VPC CIDR block for IPv4.
     Type: String
     Default: 10.0.0.0/16
   VPCSubnetIPv4Size:
@@ -40,42 +39,42 @@ Resources:
       EnableDnsHostnames: true
       InstanceTenancy: default
       Tags:
-        - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref NamingPrefix
-              - vpc
+      - Key: Name
+        Value: !Join
+        - '-'
+        - - !Ref NamingPrefix
+          - vpc
   PublicSubnet1:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: !Select
-        - 0
-        - Fn::GetAZs: !Ref 'AWS::Region'
-      CidrBlock: !Select [ 1, Fn::Cidr: [ !GetAtt VPC.CidrBlock, !Ref VPCNumberOfIPv4Subnets, !Ref VPCSubnetIPv4Size ]]
+      - 0
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !Select [1, {'Fn::Cidr': [!GetAtt VPC.CidrBlock, !Ref VPCNumberOfIPv4Subnets, !Ref VPCSubnetIPv4Size]}]
       Tags:
-        - Key: Name
-          Value: !Sub '${NamingPrefix}-publicsubnet-a'
+      - Key: Name
+        Value: !Sub '${NamingPrefix}-publicsubnet-a'
       VpcId: !Ref VPC
   PublicSubnet2:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: !Select
-        - 1
-        - Fn::GetAZs: !Ref 'AWS::Region'
-      CidrBlock: !Select [ 2, Fn::Cidr: [ !GetAtt VPC.CidrBlock, !Ref VPCNumberOfIPv4Subnets, !Ref VPCSubnetIPv4Size ]]
+      - 1
+      - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !Select [2, {'Fn::Cidr': [!GetAtt VPC.CidrBlock, !Ref VPCNumberOfIPv4Subnets, !Ref VPCSubnetIPv4Size]}]
       Tags:
-        - Key: Name
-          Value: !Sub '${NamingPrefix}-publicsubnet-b'
+      - Key: Name
+        Value: !Sub '${NamingPrefix}-publicsubnet-b'
       VpcId: !Ref VPC
   IGW:
     Type: 'AWS::EC2::InternetGateway'
     Properties:
       Tags:
-        - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref NamingPrefix
-              - igw
+      - Key: Name
+        Value: !Join
+        - '-'
+        - - !Ref NamingPrefix
+          - igw
   IGWAttach:
     Type: 'AWS::EC2::VPCGatewayAttachment'
     Properties:
@@ -92,12 +91,12 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       Tags:
-        - Key: Name
-          Value: !Join
-            - '-'
-            - - !Ref NamingPrefix
-              - public
-              - rtb
+      - Key: Name
+        Value: !Join
+        - '-'
+        - - !Ref NamingPrefix
+          - public
+          - rtb
   PublicSubnetRouteTableAssociation1:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
@@ -208,131 +207,131 @@ Resources:
   #     SubnetId: !Ref PrivateSubnet2
   AppUItaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: 
+    Properties:
       NetworkMode: awsvpc
       RequiresCompatibilities:
-        - FARGATE
+      - FARGATE
       Cpu: 256
       Memory: 512
       ExecutionRoleArn: !Ref 'ECSTaskExecutionRole'
       Family: app-ui-taskdefinition
       ContainerDefinitions:
-        - Name: app-ui
-          Essential: true
-          Image: mreferre/yelb-ui:0.10
-          PortMappings:
-            - ContainerPort: 80
-              AppProtocol: http
-              Name: app-ui
-          LogConfiguration: 
-            LogDriver: awslogs
-            Options:
-              awslogs-group: sample-ecs-app
-              awslogs-create-group: true
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: "app-ui"
+      - Name: app-ui
+        Essential: true
+        Image: mreferre/yelb-ui:0.10
+        PortMappings:
+        - ContainerPort: 80
+          AppProtocol: http
+          Name: app-ui
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: sample-ecs-app
+            awslogs-create-group: true
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: "app-ui"
   AppServerTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: 
+    Properties:
       NetworkMode: awsvpc
       RequiresCompatibilities:
-        - FARGATE
+      - FARGATE
       Cpu: 256
       Memory: 512
       ExecutionRoleArn: !Ref 'ECSTaskExecutionRole'
       Family: appserver-taskdefinition
       ContainerDefinitions:
-        - Name: app-server
-          Essential: true
-          Image: mreferre/yelb-appserver:0.7
-          PortMappings:
-            - ContainerPort: 4567
-              AppProtocol: http
-              Name: app-server
-          LogConfiguration: 
-            LogDriver: awslogs
-            Options:
-              awslogs-group: sample-ecs-app
-              awslogs-create-group: true
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: "app-server"
+      - Name: app-server
+        Essential: true
+        Image: mreferre/yelb-appserver:0.7
+        PortMappings:
+        - ContainerPort: 4567
+          AppProtocol: http
+          Name: app-server
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: sample-ecs-app
+            awslogs-create-group: true
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: "app-server"
   RedisTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: 
+    Properties:
       NetworkMode: awsvpc
       RequiresCompatibilities:
-        - FARGATE
+      - FARGATE
       Cpu: 256
       Memory: 512
       ExecutionRoleArn: !Ref 'ECSTaskExecutionRole'
       Family: redis-taskdefinition
       ContainerDefinitions:
-        - Name: redis-server
-          Essential: true
-          Image: redis:4.0.2
-          PortMappings:
-            - ContainerPort: 6379
-              Name: redis-server
-              Protocol: tcp
-          LogConfiguration: 
-            LogDriver: awslogs
-            Options:
-              awslogs-group: sample-ecs-app
-              awslogs-create-group: true
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: "redis-server"
+      - Name: redis-server
+        Essential: true
+        Image: redis:4.0.2
+        PortMappings:
+        - ContainerPort: 6379
+          Name: redis-server
+          Protocol: tcp
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: sample-ecs-app
+            awslogs-create-group: true
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: "redis-server"
   DBTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    Properties: 
+    Properties:
       NetworkMode: awsvpc
       RequiresCompatibilities:
-        - FARGATE
+      - FARGATE
       Cpu: 256
       Memory: 512
       ExecutionRoleArn: !Ref 'ECSTaskExecutionRole'
       Family: db-taskdefinition
       ContainerDefinitions:
-        - Name: postgres-db
-          Essential: true
-          Image: mreferre/yelb-db:0.6
-          PortMappings:
-            - ContainerPort: 5432
-              Name: postgres-db
-              Protocol: tcp
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-group: sample-ecs-app
-              awslogs-create-group: true
-              awslogs-region: !Ref AWS::Region
-              awslogs-stream-prefix: "postgres-db"
+      - Name: postgres-db
+        Essential: true
+        Image: mreferre/yelb-db:0.6
+        PortMappings:
+        - ContainerPort: 5432
+          Name: postgres-db
+          Protocol: tcp
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: sample-ecs-app
+            awslogs-create-group: true
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: "postgres-db"
   CloudMapNamespace:
     Type: AWS::ServiceDiscovery::HttpNamespace
-    Properties: 
+    Properties:
       Description: Namespace for the sample application.
       Name: !Sub '${NamingPrefix}.local'
   AppCluster:
     Type: AWS::ECS::Cluster
-    Properties: 
+    Properties:
       ClusterName: !Sub '${NamingPrefix}-ui-cluster'
-      ServiceConnectDefaults: 
+      ServiceConnectDefaults:
         Namespace: !GetAtt CloudMapNamespace.Arn
       CapacityProviders:
-        - FARGATE_SPOT
+      - FARGATE_SPOT
       DefaultCapacityProviderStrategy:
-        - CapacityProvider: FARGATE_SPOT
-          Weight: 1
+      - CapacityProvider: FARGATE_SPOT
+        Weight: 1
   StorageCluster:
     Type: AWS::ECS::Cluster
-    Properties: 
+    Properties:
       ClusterName: !Sub '${NamingPrefix}-storage-cluster'
-      ServiceConnectDefaults: 
+      ServiceConnectDefaults:
         Namespace: !GetAtt CloudMapNamespace.Arn
       CapacityProviders:
-        - FARGATE_SPOT
+      - FARGATE_SPOT
       DefaultCapacityProviderStrategy:
-        - CapacityProvider: FARGATE_SPOT
-          Weight: 1
+      - CapacityProvider: FARGATE_SPOT
+        Weight: 1
   ECSTaskExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -344,58 +343,58 @@ Resources:
           Action: ['sts:AssumeRole']
       Path: /
       Policies:
-        - PolicyName: YelbTaskExecutionRolePolicy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'ecr:GetAuthorizationToken'
-                  - 'ecr:BatchCheckLayerAvailability'
-                  - 'ecr:GetDownloadUrlForLayer'
-                  - 'ecr:BatchGetImage'
-                  - 'logs:CreateLogStream'
-                  - 'logs:CreateLogGroup'
-                  - 'logs:PutLogEvents'
-                  - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
-                  - 'elasticloadbalancing:Describe*'
-                  - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
-                  - 'elasticloadbalancing:DeregisterTargets'
-                  - 'elasticloadbalancing:DescribeTargetGroups'
-                  - 'elasticloadbalancing:DescribeTargetHealth'
-                  - 'elasticloadbalancing:RegisterTargets' 
-                Resource: '*'
+      - PolicyName: YelbTaskExecutionRolePolicy
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'ecr:GetAuthorizationToken'
+            - 'ecr:BatchCheckLayerAvailability'
+            - 'ecr:GetDownloadUrlForLayer'
+            - 'ecr:BatchGetImage'
+            - 'logs:CreateLogStream'
+            - 'logs:CreateLogGroup'
+            - 'logs:PutLogEvents'
+            - 'elasticloadbalancing:DeregisterInstancesFromLoadBalancer'
+            - 'elasticloadbalancing:Describe*'
+            - 'elasticloadbalancing:RegisterInstancesWithLoadBalancer'
+            - 'elasticloadbalancing:DeregisterTargets'
+            - 'elasticloadbalancing:DescribeTargetGroups'
+            - 'elasticloadbalancing:DescribeTargetHealth'
+            - 'elasticloadbalancing:RegisterTargets'
+            Resource: '*'
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: application load balancer security group
       SecurityGroupIngress:
-        - CidrIp: '0.0.0.0/0'
-          IpProtocol: tcp
-          ToPort: 80
-          FromPort: 80
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: tcp
+        ToPort: 80
+        FromPort: 80
       VpcId: !Ref 'VPC'
   UISecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: ui security group
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref ALBSecurityGroup
-          IpProtocol: tcp
-          ToPort: 80
-          FromPort: 80
+      - SourceSecurityGroupId: !Ref ALBSecurityGroup
+        IpProtocol: tcp
+        ToPort: 80
+        FromPort: 80
       SecurityGroupEgress:
-        - FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-          CidrIp: '0.0.0.0/0'
-        - FromPort: 4567
-          IpProtocol: tcp
-          ToPort: 4567
-          DestinationSecurityGroupId: !Ref AppServerSecurityGroup
+      - FromPort: 443
+        IpProtocol: tcp
+        ToPort: 443
+        CidrIp: '0.0.0.0/0'
+      - FromPort: 4567
+        IpProtocol: tcp
+        ToPort: 4567
+        DestinationSecurityGroupId: !Ref AppServerSecurityGroup
       VpcId: !Ref 'VPC'
   ALBSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
-    Properties: 
+    Properties:
       DestinationSecurityGroupId: !Ref UISecurityGroup
       IpProtocol: tcp
       ToPort: 80
@@ -406,19 +405,19 @@ Resources:
     Properties:
       GroupDescription: appserver security group
       SecurityGroupIngress:
-        - CidrIp: '0.0.0.0/0'
-          IpProtocol: tcp
-          ToPort: 4567
-          FromPort: 4567
+      - CidrIp: '0.0.0.0/0'
+        IpProtocol: tcp
+        ToPort: 4567
+        FromPort: 4567
       SecurityGroupEgress:
-        - FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-          CidrIp: '0.0.0.0/0'
-      VpcId: !Ref 'VPC'  
+      - FromPort: 443
+        IpProtocol: tcp
+        ToPort: 443
+        CidrIp: '0.0.0.0/0'
+      VpcId: !Ref 'VPC'
   AppServerSecurityGroupDBEgress:
     Type: AWS::EC2::SecurityGroupEgress
-    Properties: 
+    Properties:
       DestinationSecurityGroupId: !Ref DBSecurityGroup
       IpProtocol: tcp
       ToPort: 5432
@@ -426,7 +425,7 @@ Resources:
       GroupId: !Ref AppServerSecurityGroup
   AppServerSecurityGroupRedisEgress:
     Type: AWS::EC2::SecurityGroupEgress
-    Properties: 
+    Properties:
       DestinationSecurityGroupId: !Ref RedisServerSecurityGroup
       IpProtocol: tcp
       ToPort: 6379
@@ -437,37 +436,37 @@ Resources:
     Properties:
       GroupDescription: db security group
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref AppServerSecurityGroup
-          IpProtocol: tcp
-          ToPort: 5432
-          FromPort: 5432
+      - SourceSecurityGroupId: !Ref AppServerSecurityGroup
+        IpProtocol: tcp
+        ToPort: 5432
+        FromPort: 5432
       SecurityGroupEgress:
-        - FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-          CidrIp: '0.0.0.0/0'
+      - FromPort: 443
+        IpProtocol: tcp
+        ToPort: 443
+        CidrIp: '0.0.0.0/0'
       VpcId: !Ref 'VPC'
   RedisServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: redis-server security group
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref AppServerSecurityGroup
-          IpProtocol: tcp
-          ToPort: 6379
-          FromPort: 6379
+      - SourceSecurityGroupId: !Ref AppServerSecurityGroup
+        IpProtocol: tcp
+        ToPort: 6379
+        FromPort: 6379
       SecurityGroupEgress:
-        - FromPort: 443
-          IpProtocol: tcp
-          ToPort: 443
-          CidrIp: '0.0.0.0/0'
+      - FromPort: 443
+        IpProtocol: tcp
+        ToPort: 443
+        CidrIp: '0.0.0.0/0'
       VpcId: !Ref 'VPC'
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Scheme: internet-facing
-      Subnets: [ !Ref 'PublicSubnet1' , !Ref 'PublicSubnet2' ]
-      SecurityGroups: [ !Ref ALBSecurityGroup ]
+      Subnets: [!Ref 'PublicSubnet1', !Ref 'PublicSubnet2']
+      SecurityGroups: [!Ref ALBSecurityGroup]
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -475,8 +474,8 @@ Resources:
       Port: 80
       Protocol: HTTP
       DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref UITargetGroup
+      - Type: forward
+        TargetGroupArn: !Ref UITargetGroup
   UITargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -485,13 +484,13 @@ Resources:
       HealthCheckProtocol: HTTP
       HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
-      TargetType: ip 
+      TargetType: ip
       VpcId: !Ref VPC
       Port: 80
       Protocol: HTTP
-  DBService: 
+  DBService:
     Type: AWS::ECS::Service
-    Properties: 
+    Properties:
       LaunchType: !Ref LaunchType
       Cluster: !Ref StorageCluster
       DesiredCount: 1
@@ -499,16 +498,16 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: [ !Ref 'PublicSubnet1' , !Ref 'PublicSubnet2' ]
-          SecurityGroups: [!Ref 'DBSecurityGroup' ]
+          Subnets: [!Ref 'PublicSubnet1', !Ref 'PublicSubnet2']
+          SecurityGroups: [!Ref 'DBSecurityGroup']
       ServiceConnectConfiguration:
         Enabled: true
-        Services: 
-          - PortName: postgres-db
-            DiscoveryName: yelb-db
-            ClientAliases:
-              - DnsName: yelb-db
-                Port: 5432
+        Services:
+        - PortName: postgres-db
+          DiscoveryName: yelb-db
+          ClientAliases:
+          - DnsName: yelb-db
+            Port: 5432
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -516,9 +515,9 @@ Resources:
             awslogs-group: sample-ecs-app
             awslogs-region: !Ref AWS::Region
             awslogs-stream-prefix: "postgres-db-serviceconnect"
-  RedisService: 
+  RedisService:
     Type: AWS::ECS::Service
-    Properties: 
+    Properties:
       LaunchType: !Ref LaunchType
       Cluster: !Ref StorageCluster
       DesiredCount: 1
@@ -526,16 +525,16 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: [ !Ref 'PublicSubnet1' , !Ref 'PublicSubnet2' ]
-          SecurityGroups: [!Ref 'RedisServerSecurityGroup' ]
+          Subnets: [!Ref 'PublicSubnet1', !Ref 'PublicSubnet2']
+          SecurityGroups: [!Ref 'RedisServerSecurityGroup']
       ServiceConnectConfiguration:
-        Enabled: true 
-        Services: 
-          - PortName: redis-server
-            DiscoveryName: redis-server
-            ClientAliases:
-              - DnsName: redis-server
-                Port: 6379
+        Enabled: true
+        Services:
+        - PortName: redis-server
+          DiscoveryName: redis-server
+          ClientAliases:
+          - DnsName: redis-server
+            Port: 6379
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -543,9 +542,9 @@ Resources:
             awslogs-group: sample-ecs-app
             awslogs-region: !Ref AWS::Region
             awslogs-stream-prefix: "redis-serviceconnect"
-  AppService: 
+  AppService:
     Type: AWS::ECS::Service
-    DependsOn: ['RedisService','DBService']
+    DependsOn: ['RedisService', 'DBService']
     Properties:
       LaunchType: !Ref LaunchType
       Cluster: !Ref AppCluster
@@ -554,16 +553,16 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: [ !Ref 'PublicSubnet1' , !Ref 'PublicSubnet2' ]
-          SecurityGroups: [!Ref 'AppServerSecurityGroup' ]
+          Subnets: [!Ref 'PublicSubnet1', !Ref 'PublicSubnet2']
+          SecurityGroups: [!Ref 'AppServerSecurityGroup']
       ServiceConnectConfiguration:
         Enabled: true
-        Services: 
-          - PortName: app-server
-            DiscoveryName: yelb-appserver
-            ClientAliases:
-              - DnsName: yelb-appserver
-                Port: 4567
+        Services:
+        - PortName: app-server
+          DiscoveryName: yelb-appserver
+          ClientAliases:
+          - DnsName: yelb-appserver
+            Port: 4567
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -573,7 +572,7 @@ Resources:
             awslogs-stream-prefix: "app-serviceconnect"
   UIService:
     Type: AWS::ECS::Service
-    DependsOn: ['LoadBalancerListener','AppService']
+    DependsOn: ['LoadBalancerListener', 'AppService']
     Properties:
       LaunchType: !Ref LaunchType
       Cluster: !Ref AppCluster
@@ -582,20 +581,20 @@ Resources:
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
-          Subnets: [ !Ref 'PublicSubnet1' , !Ref 'PublicSubnet2' ]
-          SecurityGroups: [!Ref 'UISecurityGroup' ]
+          Subnets: [!Ref 'PublicSubnet1', !Ref 'PublicSubnet2']
+          SecurityGroups: [!Ref 'UISecurityGroup']
       LoadBalancers:
-        - TargetGroupArn: !Ref UITargetGroup
-          ContainerPort: 80
-          ContainerName: 'app-ui'
+      - TargetGroupArn: !Ref UITargetGroup
+        ContainerPort: 80
+        ContainerName: 'app-ui'
       ServiceConnectConfiguration:
-        Enabled: true 
-        Services: 
-          - PortName: app-ui
-            DiscoveryName: yelb-ui
-            ClientAliases:
-              - DnsName: yelb-ui
-                Port: 80
+        Enabled: true
+        Services:
+        - PortName: app-ui
+          DiscoveryName: yelb-ui
+          ClientAliases:
+          - DnsName: yelb-ui
+            Port: 80
         LogConfiguration:
           LogDriver: awslogs
           Options:
@@ -607,3 +606,4 @@ Outputs:
   LoadBalancerUrl:
     Description: The DNS name for the ALB
     Value: !GetAtt LoadBalancer.DNSName
+
