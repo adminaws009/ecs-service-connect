@@ -1,0 +1,64 @@
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+
+    env:
+      STACK_NAME: ecs-service-connect
+
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Set up jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+
+
+
+    - name: Deploy CloudFormation stack
+      run: |
+        aws cloudformation create-stack \
+          --stack-name $STACK_NAME \
+          --template-body file://ecs-service-connect.yaml \
+          --capabilities CAPABILITY_NAMED_IAM
+        aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
+
+
+
+    - name: Get CloudFormation stack outputs
+      run: |
+        aws cloudformation describe-stacks --stack-name ${STACK_NAME} --query "Stacks[0].Outputs" --output json > stack-outputs.json
+
+    - name: Display Load Balancer URL
+      run: |
+        LOAD_BALANCER_URL=$(jq -r '.[] | select(.OutputKey=="LoadBalancerUrl") | .OutputValue' stack-outputs.json)
+        echo "Load Balancer URL: $LOAD_BALANCER_URL"
+
+
+    - name: Delete CloudFormation stack
+      if: success()
+      run: |
+        set -e
+        aws cloudformation delete-stack --stack-name ${STACK_NAME}
+        aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
+
+

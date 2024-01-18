@@ -9,16 +9,13 @@ jobs:
     permissions:
       contents: read
       packages: write
-  
-
     env:
         STACK_NAME: ecs-service-connect
-
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-  
+
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -31,32 +28,39 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-        
-
-  
-      - name: Deploy CloudFormation stack
+      - name: Check if CloudFormation stack exists
         run: |
-            aws cloudformation create-stack \
-              --stack-name $STACK_NAME \
+          aws cloudformation describe-stacks --stack-name ${STACK_NAME} || true
+
+      - name: Deploy or update CloudFormation stack
+        run: |
+          set -e
+          if aws cloudformation describe-stacks --stack-name ${STACK_NAME} 2>/dev/null; then
+            echo "Stack already exists. Updating instead of creating..."
+            aws cloudformation update-stack \
+              --stack-name ${STACK_NAME} \
               --template-body file://ecs-service-connect.yaml \
               --capabilities CAPABILITY_NAMED_IAM
-            aws cloudformation wait stack-create-complete --stack-name $STACK_NAME
-        
-        
-  
+            aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}
+          else
+            echo "Creating new CloudFormation stack..."
+            aws cloudformation create-stack \
+              --stack-name ${STACK_NAME} \
+              --template-body file://ecs-service-connect.yaml \
+              --capabilities CAPABILITY_NAMED_IAM
+            aws cloudformation wait stack-create-complete --stack-name ${STACK_NAME}
+          fi
+
       - name: Get CloudFormation stack outputs
         run: |
-            aws cloudformation describe-stacks --stack-name ${STACK_NAME} --query "Stacks[0].Outputs" --output json > stack-outputs.json
-  
+          aws cloudformation describe-stacks --stack-name ${STACK_NAME} --query "Stacks[0].Outputs" --output json > stack-outputs.json
+
       - name: Display Load Balancer URL
         run: |
-            LOAD_BALANCER_URL=$(jq -r '.[] | select(.OutputKey=="LoadBalancerUrl") | .OutputValue' stack-outputs.json)
-            echo "Load Balancer URL: $LOAD_BALANCER_URL"
-
+          LOAD_BALANCER_URL=$(jq -r '.[] | select(.OutputKey=="LoadBalancerUrl") | .OutputValue' stack-outputs.json)
+          echo "Load Balancer URL: $LOAD_BALANCER_URL"
 
       - name: Delete CloudFormation stack
         run: |
-                aws cloudformation delete-stack --stack-name ${STACK_NAME}
-                aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
-
-                
+          aws cloudformation delete-stack --stack-name ${STACK_NAME}
+          aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
