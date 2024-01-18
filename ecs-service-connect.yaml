@@ -227,7 +227,7 @@ Resources:
       ContainerDefinitions:
       - Name: app-ui
         Essential: true
-        Image: mreferre/yelb-ui:0.10
+        Image: !Ref UIImageUri
         PortMappings:
         - ContainerPort: 80
           AppProtocol: http
@@ -252,7 +252,7 @@ Resources:
       ContainerDefinitions:
       - Name: app-server
         Essential: true
-        Image: mreferre/yelb-appserver:0.7
+        Image: !Ref AppServerImageUri
         PortMappings:
         - ContainerPort: 4567
           AppProtocol: http
@@ -302,7 +302,7 @@ Resources:
       ContainerDefinitions:
       - Name: postgres-db
         Essential: true
-        Image: mreferre/yelb-db:0.6
+        Image: !Ref DBImageUri
         PortMappings:
         - ContainerPort: 5432
           Name: postgres-db
