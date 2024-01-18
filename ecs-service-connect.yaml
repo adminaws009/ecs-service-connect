@@ -2,6 +2,15 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   AWS CloudFormation for deploying a sample application in ECS Fargate and enabling service to service communication using ECS Service connect.
 Parameters:
+  AppServerImageUri:
+    Type: String
+    Description: URI of the Docker image for yelb-appserver container
+  DBImageUri:
+    Type: String
+    Description: URI of the Docker image for yelb-db container
+  UIImageUri:
+    Type: String
+    Description: URI of the Docker image for yelb-ui container
   NamingPrefix:
     Type: String
     Description: The naming prefix for all resources.
