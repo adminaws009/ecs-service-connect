@@ -104,10 +104,10 @@ jobs:
           echo "Load Balancer URL: $LOAD_BALANCER_URL"
 
 
-      - name: Delete CloudFormation stack
-        run: |
-          aws cloudformation delete-stack --stack-name ${STACK_NAME}
-          aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
+      #- name: Delete CloudFormation stack
+        #run: |
+          #aws cloudformation delete-stack --stack-name ${STACK_NAME}
+          #aws cloudformation wait stack-delete-complete --stack-name ${STACK_NAME}
 
          
              
